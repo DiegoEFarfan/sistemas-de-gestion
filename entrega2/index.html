@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hilados del Plata S.A. — Entrega 2 · Partes Interesadas Significativas</title>
+<style>
+  :root{
+    --bg:#10231c; --surface:#18332a; --surface2:#1d3d31; --line:#2c5145; --line2:#3d6a56;
+    --ink:#f1eee3; --ink2:#d9d5c2; --muted:#9aab98; --cue:#b8c4aa;
+    --oro:#d9a84e; --oro2:#f0c87e; --terra:#cd8756;
+    --n1:#cb4f63; --n3:#a68e0f; --n5:#249173; --n1t:#eb93a5; --n3t:#d8c05a; --n5t:#6cc9a9;
+    --int:#cd8756; --ext:#5fa8a0;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%; background:var(--bg); overflow:hidden;
+    font-family:'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', sans-serif; color:var(--ink);}
+  #stagewrap{position:fixed; inset:0; display:flex; align-items:center; justify-content:center;}
+  #stage{width:1280px; height:720px; position:relative; transform-origin:center center;}
+  .slide{position:absolute; inset:0; padding:52px 80px 76px; display:none; flex-direction:column;
+    background:radial-gradient(1100px 600px at 85% -10%, rgba(205,135,86,.10), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgba(217,168,78,.07), transparent 55%), var(--bg);}
+  .slide.active{display:flex;}
+  .slide.active .anim{animation:rise .5s ease both;}
+  .slide.active .anim.d1{animation-delay:.08s} .slide.active .anim.d2{animation-delay:.16s} .slide.active .anim.d3{animation-delay:.24s}
+  @keyframes rise{from{opacity:0; transform:translateY(14px)}to{opacity:1; transform:none}}
+  .frag{opacity:0; transform:translateY(12px); transition:opacity .4s ease, transform .4s ease;}
+  .frag.on{opacity:1; transform:none;}
+  .kicker{font-size:13px; letter-spacing:.22em; text-transform:uppercase; color:var(--oro); font-weight:700; margin-bottom:8px;}
+  h1{font-size:50px; line-height:1.12; font-weight:750; letter-spacing:-.01em;}
+  h2{font-size:31px; line-height:1.15; font-weight:700; letter-spacing:-.01em; margin-bottom:4px;}
+  .rule{width:76px; height:4px; background:var(--oro); border-radius:2px; margin:12px 0 16px;}
+  .cols{display:grid; gap:15px; align-content:start;} .c2{grid-template-columns:1fr 1fr;} .c3{grid-template-columns:1fr 1fr 1fr;}
+  .panel{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:16px 18px;}
+  .panel h3{font-size:14.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--oro2); margin-bottom:10px; font-weight:700;}
+  .panel ul{list-style:none;}
+  .panel li{position:relative; padding-left:18px; margin-bottom:8px; font-size:14.5px; line-height:1.4; color:var(--ink2);}
+  .panel li::before{content:""; position:absolute; left:0; top:8px; width:7px; height:7px; border-radius:2px; background:var(--terra);}
+  .panel li b{color:var(--ink); font-weight:650;}
+  .dense .panel li{font-size:13.5px; margin-bottom:6px;}
+  .band{background:linear-gradient(90deg, rgba(217,168,78,.16), rgba(217,168,78,.05)); border:1px solid rgba(217,168,78,.45);
+    border-radius:14px; padding:13px 18px; font-size:16px; line-height:1.45; color:var(--ink);}
+  .band b{color:var(--oro2);}
+  .tags{display:flex; flex-wrap:wrap; gap:8px;}
+  .tag{background:var(--surface2); border:1px solid var(--line); color:var(--ink2); border-radius:999px; padding:5px 13px; font-size:13px;}
+  .tag b{color:var(--oro2); font-weight:700;}
+  .foot{position:absolute; left:80px; right:80px; bottom:28px; display:flex; justify-content:space-between; align-items:center; gap:16px;
+    font-size:12px; color:var(--muted); letter-spacing:.08em; text-transform:uppercase;}
+  .foot>span:first-child, .foot>span:last-child{flex:none; white-space:nowrap;}
+  .foot .cue{flex:1; text-align:center; text-transform:none; letter-spacing:.01em; font-size:13px; font-style:italic; color:var(--cue); line-height:1.3;}
+  .foot .cue::before{content:"◆"; color:var(--oro); font-style:normal; font-size:9px; margin-right:8px; vertical-align:1.5px;}
+  .siglas{position:absolute; left:80px; right:80px; bottom:51px; font-size:10.5px; color:var(--muted); text-align:center; letter-spacing:.02em; opacity:.9; line-height:1.3;}
+  .legend{display:flex; gap:16px; align-items:center; font-size:13px; color:var(--ink2); flex-wrap:wrap;}
+  .legend .k{display:flex; gap:7px; align-items:center;} .legend .sw{width:12px; height:12px; border-radius:3px; flex:none;}
+  #tooltip{position:fixed; pointer-events:none; background:#0c1e17; border:1px solid var(--line2); color:var(--ink);
+    border-radius:8px; padding:8px 12px; font-size:13.5px; opacity:0; transition:opacity .12s; z-index:90; line-height:1.4; max-width:320px;}
+  #progress{position:fixed; left:0; top:0; height:4px; background:var(--oro); width:0%; z-index:50; transition:width .25s;}
+  #hud{position:fixed; right:16px; bottom:12px; display:flex; gap:14px; align-items:center; z-index:50; font-size:13px; color:var(--muted); font-variant-numeric:tabular-nums;}
+  #timer{font-size:16px; font-weight:700; color:var(--muted); border:1px solid var(--line); border-radius:8px; padding:3px 12px; display:none;}
+  #timer.on{display:block; color:var(--n5t);} #timer.warn{color:var(--n3t);} #timer.crit{color:var(--n1t);}
+  #help{position:fixed; left:16px; bottom:12px; font-size:12px; color:var(--muted); z-index:50;}
+  .navzone{position:fixed; top:0; bottom:0; width:11%; z-index:40; cursor:pointer;}
+  .center{display:flex; flex-direction:column; justify-content:center; height:100%;}
+  .portada-org{display:flex; align-items:center; gap:16px; margin-bottom:26px;}
+  .logo{width:58px; height:58px; border-radius:14px; background:linear-gradient(135deg, var(--oro), #b07f2c);
+    display:flex; align-items:center; justify-content:center; font-weight:900; color:#241f14; font-size:24px;}
+  .portada-org .n{font-size:19px; font-weight:700; color:var(--ink);} .portada-org .s{font-size:13.5px; color:var(--muted); letter-spacing:.12em; text-transform:uppercase;}
+  .autores{margin-top:24px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+  .autores .a{background:var(--surface2); border:1px solid var(--line2); border-radius:10px; padding:7px 16px; font-size:14.5px; color:var(--ink);}
+  .autores .lbl{font-size:12px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin-right:4px;}
+  .hint{font-size:12.5px; color:var(--terra); letter-spacing:.04em; display:flex; align-items:center; gap:6px;}
+  .hint::before{content:"◆"; font-size:9px; animation:blink 1.6s infinite;}
+  @keyframes blink{0%,100%{opacity:.35}50%{opacity:1}}
+  .detail{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:15px 17px; overflow:hidden;}
+  .detail h4{font-size:16px; color:var(--ink); margin-bottom:2px;}
+  .detail .st{font-size:12px; letter-spacing:.1em; text-transform:uppercase; font-weight:700; margin-bottom:9px;}
+  .detail ul{list-style:none;} .detail li{position:relative; margin-bottom:6px; font-size:13px; line-height:1.4; color:var(--ink2); padding-left:14px;}
+  .detail li::before{content:""; position:absolute; left:0; top:7px; width:6px; height:6px; border-radius:2px; background:var(--terra);}
+  .lbl{font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin:8px 0 3px;}
+  .btn{display:inline-flex; align-items:center; gap:8px; background:var(--surface2); border:1px solid var(--oro); color:var(--oro2);
+    border-radius:10px; padding:8px 16px; font-size:13.5px; font-weight:700; cursor:pointer; letter-spacing:.03em;}
+  .btn:hover{background:rgba(217,168,78,.15);}
+  .node{cursor:pointer;} .node rect,.node circle{transition:filter .15s, stroke .15s;} .node:hover rect,.node:hover circle{filter:brightness(1.3);}
+  .node.sel rect,.node.sel circle{stroke:var(--oro2) !important; stroke-width:2.5 !important;}
+  .bubble{cursor:pointer;} .bubble:hover circle{filter:brightness(1.25);} .bubble.sel circle{stroke:var(--oro2); stroke-width:3;}
+  .prow{cursor:pointer;} .prow:hover rect.bg{fill:rgba(217,168,78,.08);} .prow.sel text.pn{fill:var(--oro2); font-weight:700;}
+  .link-e1{display:inline-flex; align-items:center; gap:8px; background:var(--surface2); border:1px solid var(--line2); border-radius:10px;
+    padding:6px 12px; font-size:12.5px; color:var(--ink2); text-decoration:none;}
+  .link-e1:hover{border-color:var(--oro);} .link-e1 b{color:var(--oro2);}
+  table.plan{width:100%; border-collapse:separate; border-spacing:0 3px; font-size:11.5px;}
+  table.plan th{text-align:left; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); font-weight:800; padding:0 10px 2px;}
+  table.plan td{background:rgba(24,51,42,.7); padding:4px 9px; color:var(--ink2); line-height:1.25; vertical-align:middle;}
+  table.plan td:first-child{border-radius:8px 0 0 8px;} table.plan td:last-child{border-radius:0 8px 8px 0; text-align:center;}
+  table.plan td.pn{font-weight:700; color:var(--ink); font-size:12px;} table.plan td.mu{color:var(--muted); font-size:11.5px;} table.plan td.hi{color:var(--oro2); font-weight:700; font-size:11.5px; white-space:nowrap;}
+  table.plan .pr{display:inline-block; width:24px; height:20px; line-height:20px; border-radius:5px; font-weight:800; font-size:11.5px; color:#fff;}
+  /* modal */
+  #modal{position:fixed; inset:0; background:rgba(4,12,8,.8); z-index:80; display:none; align-items:center; justify-content:center;}
+  #modal.open{display:flex;}
+  #modal .box{width:min(1180px,95vw); height:min(680px,92vh); background:var(--bg); border:1px solid var(--line2); border-radius:16px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.5);}
+  #modal .mhead{padding:14px 22px 10px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:14px; flex-wrap:wrap;}
+  #modal .mhead h3{font-size:17px; color:var(--ink); margin-right:auto;} #modal .mhead h3 small{display:block; font-size:12px; color:var(--muted); font-weight:400; margin-top:2px;}
+  #modal .x{background:none; border:none; color:var(--muted); font-size:26px; cursor:pointer; line-height:1; padding:0 4px;}
+  #modal .mbody{flex:1; overflow:auto;}
+  table.pond{width:100%; border-collapse:collapse; font-size:12.5px;}
+  table.pond th{position:sticky; top:0; background:#142c23; color:var(--muted); text-align:center; padding:8px 8px; font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; border-bottom:1px solid var(--line); z-index:2; line-height:1.25;}
+  table.pond th:first-child, table.pond td:first-child{text-align:left;}
+  table.pond td{padding:6px 8px; border-bottom:1px solid #24473a; color:var(--ink2); text-align:center; vertical-align:top; line-height:1.3;}
+  table.pond td.just{text-align:left; font-size:11.5px; color:var(--muted); width:46%; line-height:1.35;}
+  table.pond td.prod{font-weight:800; color:var(--oro2); font-size:14px;}
+  .sc{display:inline-block; width:26px; height:22px; line-height:22px; border-radius:5px; font-weight:800; font-size:12px; color:#fff;}
+  .sc.s5{background:#249173} .sc.s4{background:#3f8f6d} .sc.s3{background:#8a7d18} .sc.s2{background:#a85a52} .sc.s1{background:#cb4f63}
+  .pill{display:inline-block; font-size:10px; font-weight:800; letter-spacing:.06em; border-radius:4px; padding:2px 7px; text-transform:uppercase;}
+  .pill.int{background:var(--int); color:#1d1208} .pill.ext{background:var(--ext); color:#0b1f1c}
+  .cierre{position:absolute; inset:0; z-index:5; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:60px 90px;
+    background:radial-gradient(1100px 600px at 85% -10%, rgba(205,135,86,.13), transparent 60%), radial-gradient(900px 500px at -10% 110%, rgba(217,168,78,.10), transparent 55%), var(--bg);}
+  .cierre .clogo{width:74px; height:74px; border-radius:18px; background:linear-gradient(135deg, var(--oro), #b07f2c); display:flex; align-items:center; justify-content:center; font-weight:900; color:#241f14; font-size:30px; margin-bottom:22px;}
+  .cierre h1{font-size:88px; letter-spacing:-.02em; line-height:1;} .cierre h1 span{color:var(--oro);}
+  .cierre .cfrase{margin-top:28px; max-width:860px; font-size:21px; line-height:1.5; color:var(--ink); border-top:1px solid var(--line2); border-bottom:1px solid var(--line2); padding:18px 10px;}
+  .cierre .cfrase b{color:var(--oro2);}
+  .cierre .cautores{margin-top:30px; display:flex; gap:11px; flex-wrap:wrap; justify-content:center;}
+  .cierre .cautores span{background:var(--surface2); border:1px solid var(--line2); border-radius:10px; padding:8px 18px; font-size:15px; color:var(--ink);}
+  .cierre .cinst{margin-top:20px; font-size:12.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted);}
+  @media print{ html,body{overflow:visible; background:#fff;} #stagewrap{position:static;} #stage{width:auto; height:auto; transform:none !important;}
+    .slide{position:relative; display:flex !important; width:1280px; height:720px; page-break-after:always; margin:0 auto;}
+    .frag{opacity:1 !important; transform:none !important;} .cierre{display:none !important;} #progress,#hud,#help,.navzone,#tooltip,#modal{display:none !important;} }
+</style>
+</head>
+<body>
+<div id="progress"></div><div id="tooltip"></div>
+<div id="stagewrap"><div id="stage">
+
+<!-- ============ 1 · PORTADA ============ -->
+<section class="slide" data-notes="45 seg. Continuidad: en la Entrega 1 medimos la línea de base (1,72/5). Hoy pasamos del 'qué está mal' al 'con quién tenemos que trabajar': identificación, ponderación y expectativas de las partes interesadas significativas.">
+  <div class="center">
+    <div class="portada-org anim"><div class="logo">HP</div>
+      <div><div class="n">Hilados del Plata S.A.</div><div class="s">Planta Textil San Martín · Buenos Aires</div></div></div>
+    <div class="kicker anim d1">Entrega 2 · TP02 · Módulo de Partes Interesadas del Sistema de Gestión</div>
+    <h1 class="anim d1">Identificación, ponderación y<br><span style="color:var(--oro)">expectativas de las partes</span><br>interesadas significativas</h1>
+    <div class="tags anim d2" style="margin-top:20px">
+      <span class="tag">Marco: <b>IFC ND 1</b> · Participación de actores sociales</span>
+      <span class="tag"><b>ISO 9001:2015 · 4.2</b> Necesidades y expectativas</span>
+      <span class="tag">Método de cátedra <b>C2.2.3</b> · 5 criterios × escala 1-5</span>
+    </div>
+    <div class="autores anim d3">
+      <span class="lbl">Gerencia de Sustentabilidad · Grupo N° 3</span>
+      <span class="a">Ana Del Basso</span><span class="a">María Lourdes Garay</span><span class="a">Julián Exequiel Sorroza</span><span class="a">Diego Farfán</span>
+    </div>
+  </div>
+  <div class="siglas">SIG: Sistema Integrado de Gestión · IFC/CFI: Corporación Financiera Internacional · ND: Norma de Desempeño · ISO 9001:2015 cláusula 4.2: comprensión de las necesidades y expectativas de las partes interesadas</div>
+  <div class="foot"><span>ITBA · Sistemas de Gestión</span><span>Entrega 2 · 01 · 09 · 2026</span></div>
+</section>
+
+<!-- ============ 2 · PUENTE E1→E2 + METODO ============ -->
+<section class="slide" data-notes="1,5 min. Puente con la Entrega 1: el 1,72 y las brechas críticas ya nos dijeron QUÉ está mal; ahora vemos CON QUIÉN. Explicar el método de la cátedra: 5 criterios (contribución, legitimidad, voluntad, influencia, necesidad de involucramiento), escala 1-5, PRODUCTO = ponderación. Regla clave: se excluye a los interesados solo en el conflicto, pero no se los ignora.">
+  <div class="kicker anim">De la Entrega 1 a la Entrega 2 · Método</div>
+  <h2 class="anim">Ya sabemos qué está mal — ahora, con quién tenemos que trabajar</h2>
+  <div class="rule anim"></div>
+  <div class="cols anim d1" style="grid-template-columns:.9fr 1.1fr; gap:15px">
+    <div class="panel" style="border-left:4px solid var(--terra)">
+      <h3>Lo que trae la Entrega 1</h3>
+      <ul>
+        <li>Línea de base C1.3.1: <b>1,72 / 5</b> · 69 % de ítems en nivel 1.</li>
+        <li>Brechas críticas <b>que ya tienen dueño externo</b>: permisos (reguladores), efluentes y olores (vecinos), subregistro y EPP (gremio, SRT), contratistas sin programa.</li>
+        <li>Condición IFC: <b>60 % antes del tramo 1</b> — y la ND 1 exige un <b>plan de participación de actores sociales</b>.</li>
+      </ul>
+      <a class="link-e1" href="https://diegoefarfan.github.io/sistemas-de-gestion/" target="_blank" style="margin-top:6px">↗ Ver <b>Entrega 1</b> (evaluación inicial)</a>
+    </div>
+    <div class="panel">
+      <h3>Método C2.2.3 — análisis de significancia</h3>
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:10px">
+        <div style="background:var(--surface2); border-radius:10px; padding:10px 12px"><div style="font-size:11px; letter-spacing:.1em; color:var(--oro2); font-weight:800">EXPERIENCIA</div><div style="font-size:13px; color:var(--ink2); margin-top:3px">Contribución · Legitimidad</div></div>
+        <div style="background:var(--surface2); border-radius:10px; padding:10px 12px"><div style="font-size:11px; letter-spacing:.1em; color:var(--oro2); font-weight:800">VOLUNTAD</div><div style="font-size:13px; color:var(--ink2); margin-top:3px">Disposición a participar</div></div>
+        <div style="background:var(--surface2); border-radius:10px; padding:10px 12px"><div style="font-size:11px; letter-spacing:.1em; color:var(--oro2); font-weight:800">VALOR</div><div style="font-size:13px; color:var(--ink2); margin-top:3px">Influencia · Necesidad de involucramiento</div></div>
+      </div>
+      <ul>
+        <li>Escala <b>1 a 5</b> por criterio; <b>ponderación = producto</b> de los cinco (rango 1–3125) → orden de prioridad.</li>
+        <li><b>Legitimidad</b> filtra a quienes buscan el conflicto, no el proyecto: no entran en la matriz, <b>pero tienen política de relacionamiento propia</b>.</li>
+        <li>Diferenciar <b><span style="color:var(--int)">internas</span></b> / <b><span style="color:var(--ext)">externas</span></b>; expectativas sintetizadas <b>desde el caso</b>.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="band frag" style="margin-top:14px">Regla de la cátedra: las partes significativas son las que <b>generan riesgo para la sostenibilidad de la organización si sus expectativas no se cumplen</b> — hay que atraer, conseguir y conservar su apoyo.</div>
+  <div class="siglas">C1.3.1: Formulario de Evaluación Cualitativa Inicial · C2.2.3: Formulario Metodología de Ponderación (cátedra) · EPP: Elementos de Protección Personal · SRT: Superintendencia de Riesgos del Trabajo</div>
+  <div class="foot"><span>Hilados del Plata S.A.</span><span class="cue">La E1 midió las brechas; la E2 identifica a quiénes hay que involucrar para cerrarlas</span><span>Método</span></div>
+</section>
+
+<!-- ============ 3 · MAPA + PONDERACIÓN ============ -->
+<section class="slide" data-notes="2,5 min. Mapa: 14 partes identificadas, internas (terracota) y externas (verde agua), tamaño = ponderación. Clic en 3: IFC (esencial: de sus expectativas depende el flujo de fondos), Vecinos y Gremio. Botón 'Matriz de ponderación' abre la tabla completa con los 5 criterios y la justificación de cada valor.">
+  <div style="display:flex; justify-content:space-between; align-items:flex-end">
+    <div><div class="kicker anim">Identificación y ponderación</div>
+      <h2 class="anim">14 partes interesadas — 10 significativas</h2><div class="rule anim" style="margin-bottom:8px"></div></div>
+    <div class="hint anim d2" style="margin-bottom:14px">clic en cada parte: ponderación, justificación y expectativas</div>
+  </div>
+  <div style="display:grid; grid-template-columns:1fr 330px; gap:15px; flex:1; min-height:0" class="anim d1">
+    <div id="map" style="min-height:0"></div>
+    <div style="display:flex; flex-direction:column; gap:10px; min-height:0">
+      <div class="detail" id="mapDetail" style="flex:1; min-height:0; overflow:auto"></div>
+      <button class="btn" onclick="openModal()" style="justify-content:center">▦ Matriz de ponderación C2.2.3 — 14 partes × 5 criterios</button>
+    </div>
+  </div>
+  <div class="legend" style="margin-top:8px">
+    <span class="k"><span class="sw" style="background:var(--int)"></span>Interna</span>
+    <span class="k"><span class="sw" style="background:var(--ext)"></span>Externa</span>
+    <span class="k">Tamaño del círculo = ponderación (producto de 5 criterios)</span>
+    <span class="k"><span class="sw" style="background:transparent; border:2px solid var(--oro)"></span>Significativa (≥ 300)</span>
+  </div>
+  <div class="siglas">AOT: Asociación Obrera Textil · SETIA: Sindicato de Empleados Textiles · ADA: Autoridad del Agua · OPDS: ex Organismo Provincial para el Desarrollo Sostenible (hoy Min. de Ambiente PBA) · ERAS: Ente Regulador de Agua y Saneamiento</div>
+  <div class="foot"><span>Método C2.2.3 · escala 1-5 · producto</span><span class="cue">El IFC es esencial: de sus expectativas depende el flujo de fondos — pero sin vecinos y gremio no hay 60 %</span><span>Mapa</span></div>
+</section>
+
+<!-- ============ 4 · MAPEO 2 EJES + EXPECTATIVAS ============ -->
+<section class="slide" data-notes="2,5 min. Mapeo de cátedra: eje X voluntad, eje Y experiencia, tamaño = valor. Los cuadrantes definen la táctica: INVOLUCRAR (arriba-derecha), COMUNICAR (arriba-izquierda), INFORMAR (abajo). Clic en una burbuja: expectativas y táctica. Recorrer 3: IFC (involucrar), Vecinos (involucrar - hoy están en comunicar), Cartoneros (informar+incluir).">
+  <div style="display:flex; justify-content:space-between; align-items:flex-end">
+    <div><div class="kicker anim">Mapeo y expectativas</div>
+      <h2 class="anim">Qué espera cada parte — y qué táctica corresponde</h2><div class="rule anim" style="margin-bottom:8px"></div></div>
+    <div class="hint anim d2" style="margin-bottom:14px">clic en cada burbuja: expectativas y táctica</div>
+  </div>
+  <div style="display:grid; grid-template-columns:1fr 340px; gap:15px; flex:1; min-height:0" class="anim d1">
+    <div class="panel" style="display:flex; flex-direction:column; min-height:0; padding:12px 14px">
+      <div id="quad" style="flex:1; min-height:0"></div>
+    </div>
+    <div class="detail" id="quadDetail" style="overflow:auto"></div>
+  </div>
+  <div class="siglas">Mapeo según apuntes FCD 08/2026: eje Y = Experiencia (contribución + legitimidad) · eje X = Voluntad · tamaño = Valor (influencia + necesidad de involucramiento) · tácticas: involucrar / comunicar / informar</div>
+  <div class="foot"><span>Mapeo de partes interesadas</span><span class="cue">Involucrar a quien puede descarrilar el proceso; comunicar a quien aún no dialoga; informar al resto</span><span>Expectativas</span></div>
+</section>
+
+<!-- ============ 5 · PLAN DE RELACIONAMIENTO + CIERRE ============ -->
+<section class="slide" data-notes="2 min + cierre. Plan de relacionamiento en 5 pasos (A-E de la cátedra) atado al SIG y al hito IFC: mecanismo de quejas (ND1 §35), procedimiento de comunicaciones externas (§34), Comité Mixto, mesa con vecinos y municipio, programa de contratistas, informe anual. Nivel de alcance: pasar de reactivo (transparencia) a proactivo (modificación del desempeño). Flecha final: pantalla de cierre.">
+  <div class="kicker anim">Plan de relacionamiento</div>
+  <h2 class="anim">De reactivo a proactivo: acciones por parte significativa</h2>
+  <div class="rule anim"></div>
+  <div id="plan" style="flex:1; min-height:0; overflow:hidden" class="anim d1"></div>
+  <div class="cols c2 frag" style="grid-template-columns:1.2fr .8fr; gap:13px; margin-top:8px">
+    <div class="band" style="font-size:14.5px"><b>Integrado al SIG:</b> mecanismo de quejas (ND 1 §35) · procedimiento de comunicaciones externas (§34) · registro de partes interesadas · informe anual a la comunidad (§36) — la <b>evidencia documental</b> que el IFC audita para el 60 %.</div>
+    <div class="band" style="font-size:14px; text-align:center">Nivel de alcance hoy: <b>reactivo</b> → meta dic-2027: <b>modificación del desempeño</b></div>
+  </div>
+  <div class="cierre frag">
+    <div class="clogo">HP</div><h1><span>Gracias</span></h1>
+    <div class="cfrase">«El compromiso con las partes interesadas no es relaciones públicas: es incorporar sus expectativas a la <b>estrategia y a las operaciones</b>. La licencia social <b>se gana y se mantiene</b> — y el IFC la va a auditar.»</div>
+    <div class="cautores"><span>Ana Del Basso</span><span>María Lourdes Garay</span><span>Julián Exequiel Sorroza</span><span>Diego Farfán</span></div>
+    <div class="cinst">Gerencia de Sustentabilidad · Grupo N° 3 · ITBA — Sistemas de Gestión · Entrega 2</div>
+  </div>
+  <div class="siglas">ND 1 §34-36: comunicaciones externas, mecanismo de quejas e informes a comunidades afectadas · Comité Mixto SST: Ley 14.408 PBA · Ley 27.401: responsabilidad penal empresaria / programa de integridad</div>
+  <div class="foot"><span>Del Basso · Garay · Sorroza · Farfán</span><span class="cue">Cada parte significativa tiene una acción, un responsable y una fecha atada al hito del 60 %</span><span>Plan</span></div>
+</section>
+
+</div></div>
+
+<div id="modal"><div class="box">
+  <div class="mhead"><h3>Matriz de ponderación — Formulario C2.2.3<small>Escala 1–5 por criterio · Ponderación = Contribución × Legitimidad × Voluntad × Influencia × Necesidad de involucramiento · significativa ≥ 300</small></h3><button class="x" onclick="closeModal()">×</button></div>
+  <div class="mbody"><table class="pond" id="pt"></table></div>
+</div></div>
+
+<div class="navzone" style="left:0" onclick="nav(-1)"></div><div class="navzone" style="right:0" onclick="nav(1)"></div>
+<div id="help">← → avanzar · M matriz de ponderación · T cronómetro · N notas · P imprimir/PDF</div>
+<div id="hud"><div id="timer">10:00</div><div id="counter">1 / 5</div></div>
+
+<script>
+// ============ DATOS: partes interesadas del caso (método C2.2.3) ============
+// c=contribución, l=legitimidad, v=voluntad, i=influencia, n=necesidad de involucramiento (1-5)
+const PI=[
+ {id:'ifc', short:'IFC / CFI', nom:'IFC / CFI', tipo:'ext', c:5,l:5,v:5,i:5,n:5,
+  just:'Financista: visita orientadora ya realizada; define ND aplicables y el hito del 60 %. Aporta know-how (guías, notas de orientación) y su desembolso condiciona toda la estrategia.',
+  exp:['Sistema de gestión A&S documentado y plan de adecuación con hitos','≥ 60 % de cumplimiento ND antes del tramo 1 (dic-2027)','Plan de participación de actores sociales y mecanismo de quejas (ND 1)','Evidencia: registros, informes, gestión de contratistas y cadena de suministro'],
+  tac:'INVOLUCRAR', fmt:'Reuniones de seguimiento trimestrales · reporte de avance del plan · auditoría documental', quien:'Sustentabilidad + Adm. y Finanzas'},
+ {id:'vec', short:'Vecinos', nom:'Vecinos / comunidad', tipo:'ext', c:3,l:5,v:4,i:4,n:5,
+  just:'Comunidad afectada (ND 1 NO92): olores, derrames, camiones, cartoneros, escape de gas. Legitimidad plena; hoy dialogan vía municipio y amenazan piquete con repercusión mediática.',
+  exp:['Cese de olores y derrames; respuesta rápida ante incidentes','Camiones fuera de calles y veredas; pavimentos reparados','Retiro de contenedores exteriores y fin del desorden de cartoneros','Canal de quejas accesible y devolución en tiempo y forma'],
+  tac:'INVOLUCRAR', fmt:'Mesa de diálogo con vecinos + municipio · visitas a planta · mecanismo de quejas · informe anual', quien:'Sustentabilidad + RR.HH. (Rel. Comunitarias)'},
+ {id:'gre', short:'Gremio · Com. Interna', nom:'Gremio AOT / SETIA · Comisión Interna', tipo:'int', c:4,l:5,v:4,i:5,n:5,
+  just:'Comisión interna influyente, representa cabalmente a los trabajadores; quite de colaboración en 2025. Convenio de empresa en negociación; participan del Comité Mixto SST (Ley 14.408).',
+  exp:['Empleo estable y salario que mantenga poder adquisitivo','Condiciones seguras: EPP, instalaciones, vestuarios; cierre de acciones correctivas','Interlocutores válidos y políticas laborales claras','Participación real en el Comité Mixto y en los equipos de proyecto'],
+  tac:'INVOLUCRAR', fmt:'Comité Mixto SST · mesa de convenio · delegados en equipos de proyecto', quien:'RR.HH. + Sustentabilidad'},
+ {id:'ope', short:'Trabajadores', nom:'Trabajadores (operarios y supervisores)', tipo:'int', c:4,l:5,v:3,i:3,n:4,
+  just:'240 operarios en 3 turnos + 34 supervisores; ausentismo 11 %, parte asociado al trabajo. Conocen la operación (contribución alta); voluntad condicionada por la desconfianza histórica.',
+  exp:['Trabajo seguro y estable; menos accidentes','Capacitación para multitareas e Industria 4.0 sin amenaza al empleo','Reconocimiento (bonos por productividad) y orden en la operación'],
+  tac:'INVOLUCRAR', fmt:'Grupos de proyecto con operarios · capacitación · canal de sugerencias y quejas', quien:'Industrial + RR.HH.'},
+ {id:'dir', short:'Dirección', nom:'Dirección · Comité de Dirección', tipo:'int', c:5,l:5,v:5,i:5,n:4,
+  just:'Sponsor: apoyo explícito del Director Ejecutivo; aprueba presupuesto y prioridad del SIG. Necesita resultados en 4 años.',
+  exp:['Cumplir la condición IFC y asegurar el financiamiento','Reducir riesgos ASG, legales y reputacionales','Resultados significativos dentro de los 4 años'],
+  tac:'INVOLUCRAR', fmt:'Revisión por la Dirección trimestral · tablero de indicadores', quien:'Sustentabilidad'},
+ {id:'acc', short:'Accionistas', nom:'Accionistas · grupo inversor', tipo:'int', c:3,l:5,v:4,i:5,n:4,
+  just:'Emitieron garantías internacionales para el préstamo; deben decidir la ON. Influencia máxima; involucramiento vía Directorio.',
+  exp:['Retorno de la reconversión (facturación 37,5 M en 2030)','Cumplimiento del contrato IFC y de la CNV','Sin pasivos ni sanciones que afecten el valor'],
+  tac:'COMUNICAR', fmt:'Reporte trimestral al Directorio', quien:'Adm. y Finanzas'},
+ {id:'mun', short:'Municipalidad', nom:'Municipalidad de San Martín', tipo:'ext', c:3,l:5,v:4,i:5,n:5,
+  just:'Habilitación vencida; convocó formalmente a la empresa por gas, camiones, cartoneros y derrame; postergó actuar por líquidos nauseabundos. Puede clausurar.',
+  exp:['Regularización de la habilitación','Solución al estacionamiento de camiones y al deterioro vial','Higiene en accesos; fin de contenedores exteriores','Respuesta formal y trazable a cada reclamo'],
+  tac:'INVOLUCRAR', fmt:'Reuniones formales · plan de trabajo con hitos · participación en mesa vecinal', quien:'Sustentabilidad + Asesoría Legal'},
+ {id:'amb', short:'Ambiente PBA · ADA · ERAS', nom:'Ambiente PBA (ex OPDS) · ADA · ERAS', tipo:'ext', c:3,l:5,v:3,i:5,n:5,
+  just:'CAA por vencer, EIA vence oct-2026, 4/7 pozos sin doc., vuelco precario con acta. Voluntad institucional media (actúan por expediente); influencia y necesidad máximas.',
+  exp:['Expedientes al día: CAA, EIA, pozos, permiso de vuelco definitivo','Parámetros de descarga dentro de norma; cámara de toma y caudal','Plan de remediación del pasivo (tanques enterrados)','Seguro ambiental contratado'],
+  tac:'INVOLUCRAR', fmt:'Matriz de cumplimiento legal · plan de trabajo ante ERAS · comunicación formal con autoridades (C2.3.0 paso 8)', quien:'Sustentabilidad + Asesoría Legal'},
+ {id:'srt', short:'SRT · ART', nom:'SRT · ART', tipo:'ext', c:4,l:5,v:3,i:4,n:4,
+  just:'Subregistro de accidentes; riesgo de Programa de Alta Siniestralidad. Aportan prevención y capacitación (contribución).',
+  exp:['Denuncia veraz de accidentes; indicadores confiables','Relevamiento de riesgos actualizado; ergonomía 886/15','Programa de prevención activo'],
+  tac:'COMUNICAR', fmt:'Reuniones con ART · plan de prevención conjunto', quien:'Sustentabilidad (SST)'},
+ {id:'con', short:'Contratistas', nom:'Contratistas y proveedores de servicios', tipo:'ext', c:2,l:4,v:3,i:2,n:4,
+  just:'Comedor, limpieza, vigilancia, plagas, obra de gas, transporte. Sin programa de contratistas; incidente de transporte sin hoja de seguridad. ND 2 exige corresponsabilidad.',
+  exp:['Reglas claras de ingreso, seguridad e inducción','Contratos y pagos previsibles','Ser considerados en la planificación (obras, logística)'],
+  tac:'COMUNICAR', fmt:'Programa de contratistas (C5.1.2) · inducción · debida diligencia (Ley 27.401)', quien:'Sustentabilidad + Compras'},
+ {id:'cli', short:'Clientes premium', nom:'Clientes premium e internacionales', tipo:'ext', c:4,l:4,v:3,i:4,n:3,
+  just:'Compradores B2B con programas sostenibles y hotelería: exigen trazabilidad, certificaciones y calidad consistente. Hoy 20 % de reprocesos.',
+  exp:['Calidad consistente (ISO 9001) y entregas confiables','Trazabilidad por lote y certificaciones (lino / Algodón Responsable)','Desempeño A&S auditable en la cadena'],
+  tac:'COMUNICAR', fmt:'Reporte de sostenibilidad · certificaciones · auditorías de cliente', quien:'Comercial + Calidad'},
+ {id:'prov', short:'Proveedores de fibra', nom:'Proveedores de fibra (algodón / lino)', tipo:'ext', c:3,l:3,v:3,i:2,n:2,
+  just:'Cadena de suministro a desarrollar: cadena de custodia certificada (Better Cotton). Sin debida diligencia laboral hoy.',
+  exp:['Contratos de largo plazo','Acompañamiento en la certificación'],
+  tac:'INFORMAR', fmt:'Requisitos de proveedor · cadena de custodia', quien:'Comercial'},
+ {id:'car', short:'Cartoneros', nom:'Cartoneros', tipo:'ext', c:2,l:3,v:2,i:2,n:3,
+  just:'Grupo vulnerable (ND 1 §27): dependen de los contenedores exteriores; su presencia genera conflicto vecinal y riesgo para ellos mismos. Baja voluntad e influencia, pero no pueden ignorarse.',
+  exp:['Acceso al material reciclable','Transición ordenada, sin pérdida abrupta del recurso'],
+  tac:'INFORMAR + INCLUIR', fmt:'Acuerdo de transición con cooperativa / municipio · segregación en origen', quien:'Sustentabilidad + RR.HH.'},
+ {id:'med', short:'Medios · ONG', nom:'Medios y redes / ONG locales', tipo:'ext', c:1,l:2,v:2,i:4,n:3,
+  just:'Actor social más que parte interesada: sin afectación directa pero amplifican (piquete “con repercusión mediática”). Legitimidad baja para la matriz; requieren política de relacionamiento específica.',
+  exp:['Información transparente y oportuna ante incidentes'],
+  tac:'INFORMAR', fmt:'Vocería única · comunicados · web / informe de sostenibilidad', quien:'Dirección + Sustentabilidad'},
+];
+PI.forEach(p=>{p.pond=p.c*p.l*p.v*p.i*p.n; p.exp_=(p.c+p.l)/2; p.val=(p.i+p.n)/2; p.sig=p.pond>=300;});
+PI.sort((a,b)=>b.pond-a.pond);
+
+(function(){
+  const slides=[...document.querySelectorAll('.slide')]; let cur=0;
+  const stage=document.getElementById('stage');
+  function fit(){const s=Math.min(innerWidth/1280,innerHeight/720);stage.style.transform=`scale(${s})`;}
+  addEventListener('resize',fit);fit();
+  function frags(i){return [...slides[i].querySelectorAll('.frag')];}
+  function show(i,all){cur=Math.max(0,Math.min(slides.length-1,i));
+    slides.forEach((s,j)=>s.classList.toggle('active',j===cur)); frags(cur).forEach(f=>f.classList.toggle('on',!!all));
+    document.getElementById('counter').textContent=(cur+1)+' / '+slides.length;
+    document.getElementById('progress').style.width=((cur+1)/slides.length*100)+'%'; hideNotes(); onActivate(cur);}
+  function next(){const f=frags(cur).find(x=>!x.classList.contains('on')); if(f){f.classList.add('on');return;} if(cur<slides.length-1)show(cur+1,false);}
+  function prev(){const on=frags(cur).filter(x=>x.classList.contains('on')); if(on.length){on[on.length-1].classList.remove('on');return;} if(cur>0)show(cur-1,true);}
+  window.nav=d=>d>0?next():prev();
+  addEventListener('keydown',e=>{
+    const mo=document.getElementById('modal').classList.contains('open');
+    if(mo){ if(e.key==='Escape'||e.key.toLowerCase()==='m')closeModal(); return; }
+    if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'){e.preventDefault();next();}
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();prev();}
+    else if(e.key==='Home')show(0,false); else if(e.key==='End')show(slides.length-1,true);
+    else if(e.key.toLowerCase()==='t')toggleTimer(); else if(e.key.toLowerCase()==='n')toggleNotes();
+    else if(e.key.toLowerCase()==='m')openModal(); else if(e.key.toLowerCase()==='p')print();
+  });
+  let tLeft=600,tInt=null; const tEl=document.getElementById('timer'); const fmt=s=>Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+  function toggleTimer(){ if(tInt){clearInterval(tInt);tInt=null;tEl.classList.remove('on','warn','crit');tLeft=600;tEl.textContent='10:00';return;}
+    tEl.classList.add('on'); tInt=setInterval(()=>{tLeft=Math.max(0,tLeft-1);tEl.textContent=fmt(tLeft);
+      tEl.classList.toggle('warn',tLeft<=120&&tLeft>60);tEl.classList.toggle('crit',tLeft<=60); if(!tLeft)clearInterval(tInt);},1000);}
+  let notesBox=null;
+  function toggleNotes(){ if(notesBox){hideNotes();return;} notesBox=document.createElement('div');
+    Object.assign(notesBox.style,{position:'fixed',left:'50%',bottom:'56px',transform:'translateX(-50%)',maxWidth:'760px',background:'#0c1e17',border:'1px solid #3d6a56',borderRadius:'12px',padding:'14px 20px',fontSize:'15px',color:'#e6e3d3',zIndex:70,lineHeight:1.5});
+    notesBox.textContent='🗒 '+(slides[cur].dataset.notes||''); document.body.appendChild(notesBox);}
+  function hideNotes(){if(notesBox){notesBox.remove();notesBox=null;}}
+  const tip=document.getElementById('tooltip');
+  window.showTip=(e,h)=>{tip.innerHTML=h;tip.style.opacity=1;moveTip(e);}; window.moveTip=e=>{tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY-10)+'px';}; window.hideTip=()=>{tip.style.opacity=0;};
+
+  const COL={int:'#cd8756',ext:'#5fa8a0'};
+  const TAC={INVOLUCRAR:'#249173',COMUNICAR:'#a68e0f',INFORMAR:'#5fa8a0','INFORMAR + INCLUIR':'#5fa8a0'};
+  function pillHtml(p){return `<span class="pill ${p.tipo}">${p.tipo==='int'?'Interna':'Externa'}</span>`;}
+  function detailHtml(p, showTac){
+    return `<h4>${p.nom}</h4><div class="st" style="color:var(--oro2)">${pillHtml(p)} &nbsp; Ponderación <b style="font-size:15px">${p.pond}</b> ${p.sig?'· <span style="color:var(--n5t)">significativa</span>':'· <span style="color:var(--muted)">no significativa</span>'}</div>
+      <div style="display:flex; gap:5px; margin-bottom:6px">${[['C',p.c],['L',p.l],['V',p.v],['I',p.i],['N',p.n]].map(([k,v])=>`<span class="sc s${v}" title="${k}">${v}</span>`).join('')}<span style="font-size:10.5px;color:var(--muted);align-self:center;margin-left:4px">C · L · V · I · N</span></div>
+      <div class="lbl">Justificación</div><div style="font-size:12.5px;color:var(--ink2);line-height:1.4">${p.just}</div>
+      <div class="lbl">Expectativas principales</div><ul>${p.exp.map(e=>`<li>${e}</li>`).join('')}</ul>
+      ${showTac?`<div class="lbl">Táctica · formato · responsable</div><div style="font-size:12.5px;color:var(--n5t);line-height:1.4"><b style="color:${TAC[p.tac]}">${p.tac}</b> — ${p.fmt}<br><span style="color:var(--muted)">${p.quien}</span></div>`:''}`;
+  }
+
+  // ---------- SLIDE 3: mapa radial ----------
+  function renderMap(){
+    const W=820,H=452,cx=W/2,cy=H/2,rx=270,ry=178;
+    let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%" font-family="inherit">`;
+    PI.forEach((p,i)=>{const a=-Math.PI/2+i*2*Math.PI/PI.length; const x=cx+rx*Math.cos(a),y=cy+ry*Math.sin(a);
+      s+=`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#2c5145" stroke-width="1" opacity=".55"/>`;});
+    s+=`<ellipse cx="${cx}" cy="${cy}" rx="88" ry="50" fill="#1d3d31" stroke="#d9a84e" stroke-width="1.6"/>
+        <text x="${cx}" y="${cy-5}" text-anchor="middle" font-size="14.5" font-weight="700" fill="#f1eee3">Hilados del Plata</text>
+        <text x="${cx}" y="${cy+13}" text-anchor="middle" font-size="11" fill="#9aab98">Planta San Martín</text>`;
+    PI.forEach((p,i)=>{const a=-Math.PI/2+i*2*Math.PI/PI.length; const x=cx+rx*Math.cos(a),y=cy+ry*Math.sin(a);
+      const r=9+Math.sqrt(p.pond)/2.6; const short=p.short;
+      const lx = x + (Math.cos(a)>0.25? r+6 : Math.cos(a)<-0.25? -(r+6):0);
+      const anchor = Math.cos(a)>0.25?'start':Math.cos(a)<-0.25?'end':'middle';
+      const ly = Math.abs(Math.cos(a))<=0.25 ? (Math.sin(a)<0? y-r-8 : y+r+16) : y+4.5;
+      s+=`<g class="node" id="nd-${p.id}" onclick="selMap('${p.id}')">
+        <circle cx="${x}" cy="${y}" r="${r}" fill="${COL[p.tipo]}" opacity=".9" stroke="${p.sig?'#d9a84e':'#10231c'}" stroke-width="${p.sig?2:1.5}"/>
+        <text x="${x}" y="${y+4}" text-anchor="middle" font-size="${r>18?11:9.5}" font-weight="800" fill="#fff" pointer-events="none">${p.pond}</text>
+        <text x="${lx}" y="${ly}" text-anchor="${anchor}" font-size="11.5" fill="#d9d5c2">${short}</text></g>`;});
+    s+='</svg>'; document.getElementById('map').innerHTML=s;
+  }
+  window.selMap=id=>{const p=PI.find(x=>x.id===id); document.querySelectorAll('#map .node').forEach(n=>n.classList.toggle('sel',n.id==='nd-'+id)); document.getElementById('mapDetail').innerHTML=detailHtml(p,false);};
+  function mapDefault(){
+    const sig=PI.filter(p=>p.sig);
+    document.getElementById('mapDetail').innerHTML=`<h4>Resultado de la ponderación</h4><div class="st" style="color:var(--oro2)">${PI.length} identificadas · ${sig.length} significativas</div>
+     <div style="font-size:12.5px;color:var(--ink2);line-height:1.5">Orden de prioridad (producto de los 5 criterios):</div>
+     <ol style="margin:6px 0 0 18px;font-size:12.5px;color:var(--ink2);line-height:1.55">${PI.slice(0,8).map(p=>`<li><b style="color:var(--ink)">${p.nom.split(' · ')[0]}</b> <span style="color:var(--oro2);font-weight:700">${p.pond}</span></li>`).join('')}</ol>
+     <div style="font-size:12px;color:var(--muted);margin-top:8px;line-height:1.4">Medios/ONG (legitimidad 2) y cartoneros quedan fuera de la matriz significativa pero con <b style="color:var(--ink2)">política de relacionamiento específica</b>.</div>`;
+  }
+
+  // ---------- SLIDE 4: cuadrantes experiencia × voluntad ----------
+  function renderQuad(){
+    const W=820,H=470,L=58,R=20,T=26,B=44,PADX=42,PADY=34; const px=v=>L+PADX+(v-1)/4*(W-L-R-2*PADX), py=v=>T+PADY+(5-v)/4*(H-T-B-2*PADY);
+    let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%" font-family="inherit">`;
+    // cuadrantes
+    s+=`<rect x="${px(3)}" y="${T}" width="${W-R-px(3)}" height="${py(3)-T}" fill="rgba(36,145,115,.10)"/>`;
+    s+=`<rect x="${L}" y="${T}" width="${px(3)-L}" height="${py(3)-T}" fill="rgba(166,142,15,.10)"/>`;
+    s+=`<rect x="${L}" y="${py(3)}" width="${W-L-R}" height="${H-B-py(3)}" fill="rgba(95,168,160,.07)"/>`;
+    s+=`<text x="${W-R-10}" y="${py(3)-8}" text-anchor="end" font-size="12" font-weight="800" fill="#6cc9a9" letter-spacing=".12em">INVOLUCRAR</text>`;
+    s+=`<text x="${L+10}" y="${T+18}" font-size="12" font-weight="800" fill="#d8c05a" letter-spacing=".12em">COMUNICAR</text>`;
+    s+=`<text x="${L+10}" y="${H-B-10}" font-size="12" font-weight="800" fill="#5fa8a0" letter-spacing=".12em">INFORMAR</text>`;
+    // ejes
+    [1,2,3,4,5].forEach(v=>{s+=`<line x1="${px(v)}" y1="${T}" x2="${px(v)}" y2="${H-B}" stroke="#2c5145" stroke-width="${v===3?1.5:.6}" stroke-dasharray="${v===3?'0':'3 5'}"/>`;
+      s+=`<line x1="${L}" y1="${py(v)}" x2="${W-R}" y2="${py(v)}" stroke="#2c5145" stroke-width="${v===3?1.5:.6}" stroke-dasharray="${v===3?'0':'3 5'}"/>`;
+      s+=`<text x="${px(v)}" y="${H-B+16}" text-anchor="middle" font-size="10.5" fill="#9aab98">${v}</text>`;
+      s+=`<text x="${L-8}" y="${py(v)+4}" text-anchor="end" font-size="10.5" fill="#9aab98">${v}</text>`;});
+    s+=`<text x="${(L+W-R)/2}" y="${H-8}" text-anchor="middle" font-size="12" fill="#d9d5c2" letter-spacing=".1em">VOLUNTAD PARA COMPROMETERSE →</text>`;
+    s+=`<text x="14" y="${(T+H-B)/2}" text-anchor="middle" font-size="12" fill="#d9d5c2" letter-spacing=".1em" transform="rotate(-90 14 ${(T+H-B)/2})">EXPERIENCIA (contribución + legitimidad) →</text>`;
+    // jitter para solapados
+    const seen={};
+    PI.forEach(p=>{const key=p.v+'-'+p.exp_; seen[key]=(seen[key]||0)+1; const k=seen[key]-1;
+      const OFF={ifc:[-22,14,'b'],dir:[28,-4,'b'],gre:[0,-14,'a'],mun:[-34,26,'b'],vec:[36,22,'r'],acc:[-6,-18,'a'],amb:[-46,-22,'a'],srt:[12,-36,'a'],ope:[-46,26,'l'],cli:[30,20,'r'],con:[-30,-8,'l'],prov:[26,6,'b'],car:[0,0,'a'],med:[0,0,'a']};
+      const o=OFF[p.id]||[0,0,'a'];
+      const x=px(p.v)+o[0], y=py(p.exp_)+o[1], r=7+p.val*3.6;
+      const nm=p.short; const ly= o[2]==='a'? y-r-5 : o[2]==='b'? y+r+12 : y+4;
+      const lx= o[2]==='l'? x-r-6 : o[2]==='r'? x+r+6 : x; const anc= o[2]==='l'?'end':o[2]==='r'?'start':'middle';
+      s+=`<g class="bubble" id="bb-${p.id}" onclick="selQuad('${p.id}')" onmousemove="moveTip(event)" onmouseover="showTip(event,'<b>${p.nom}</b><br>Experiencia ${p.exp_} · Voluntad ${p.v} · Valor ${p.val}<br>Ponderación <b>${p.pond}</b> — ${p.tac}')" onmouseout="hideTip()">
+        <circle cx="${x}" cy="${y}" r="${r}" fill="${COL[p.tipo]}" opacity=".85" stroke="#10231c" stroke-width="1.5"/>
+        <text x="${lx}" y="${ly}" text-anchor="${anc}" font-size="10.5" fill="#f1eee3" font-weight="600" stroke="#10231c" stroke-width="3" paint-order="stroke">${nm}</text></g>`;});
+    s+='</svg>'; document.getElementById('quad').innerHTML=s;
+  }
+  window.selQuad=id=>{const p=PI.find(x=>x.id===id); document.querySelectorAll('#quad .bubble').forEach(n=>n.classList.toggle('sel',n.id==='bb-'+id)); document.getElementById('quadDetail').innerHTML=detailHtml(p,true);};
+  function quadDefault(){
+    document.getElementById('quadDetail').innerHTML=`<h4>Tácticas según cuadrante</h4><div class="st" style="color:var(--oro2)">Apuntes FCD · preparación (B)</div>
+    <div style="font-size:12.5px;color:var(--ink2);line-height:1.5">
+    <b style="color:#6cc9a9">INVOLUCRAR</b> — participación necesaria: IFC, Dirección, gremio, vecinos, municipio, reguladores. Formatos: mesas, comité mixto, seguimiento conjunto.<br><br>
+    <b style="color:#d8c05a">COMUNICAR</b> — alta experiencia o disposición pero sin diálogo aún: SRT/ART, clientes, contratistas, accionistas. Formatos: boletín, reuniones, reporte.<br><br>
+    <b style="color:#5fa8a0">INFORMAR</b> — buscan información: proveedores de fibra, medios, cartoneros (con inclusión diferenciada).<br><br>
+    <span style="color:var(--muted)">Los vecinos hoy están en el borde comunicar/involucrar: la meta del plan es llevarlos al cuadrante de involucramiento.</span></div>`;
+  }
+
+  // ---------- SLIDE 5: plan ----------
+  const PLAN=[
+    ['IFC / CFI','Plan de participación de actores sociales + registro de partes (ND 1 §26-27)','Sustentabilidad','oct-2026','5'],
+    ['Vecinos + Municipio','Mesa de diálogo trimestral · mecanismo de quejas (§35) · retiro de contenedores · playa de camiones','Sustentabilidad · RR.HH.','sep-2026 →','5'],
+    ['Gremio / Comisión Interna','Comité Mixto SST operativo (Ley 14.408) · delegados en equipos de proyecto · plan EPP','RR.HH. · Sustentabilidad','sep-2026','5'],
+    ['Reguladores (Ambiente · ADA · ERAS)','Matriz de cumplimiento legal · expedientes CAA / EIA / pozos / vuelco · canal formal','Sustentabilidad · Legal','oct-26 → dic-27','5'],
+    ['Trabajadores','Canal de quejas laboral (ND 2) · capacitación multitareas · reporte de incidentes sin represalia','RR.HH. · Industrial','nov-2026','4'],
+    ['Contratistas','Programa de contratistas (C5.1.2): inducción, AST, supervisión · debida diligencia Ley 27.401','Sustentabilidad · Compras','dic-2026','4'],
+    ['Cartoneros','Acuerdo de transición con cooperativa/municipio · segregación en origen · retiro gradual de contenedores','Sustentabilidad · RR.HH.','dic-2026','3'],
+    ['Clientes · Accionistas · SRT · Medios','Reporte de sostenibilidad anual (§36) · vocería única · reuniones con ART','Dirección · Comercial','anual · 2027','3'],
+  ];
+  function renderPlan(){
+    const pc={5:'#cb4f63',4:'#a68e0f',3:'#5fa8a0'};
+    let t=`<table class="plan"><thead><tr><th style="width:175px">Parte significativa</th><th>Acción del plan (integrada al SIG)</th><th style="width:140px">Responsable</th><th style="width:100px">Hito</th><th style="width:44px">Prior.</th></tr></thead><tbody>`;
+    PLAN.forEach(r=>{t+=`<tr><td class="pn">${r[0]}</td><td>${r[1]}</td><td class="mu">${r[2]}</td><td class="hi">${r[3]}</td><td><span class="pr" style="background:${pc[r[4]]}">${r[4]}</span></td></tr>`;});
+    t+='</tbody></table>'; document.getElementById('plan').innerHTML=t;
+  }
+  // ---------- modal matriz ----------
+  window.openModal=()=>{document.getElementById('modal').classList.add('open'); renderTable();};
+  window.closeModal=()=>{document.getElementById('modal').classList.remove('open');};
+  document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal();});
+  function renderTable(){
+    let h=`<thead><tr><th style="width:150px">Parte interesada</th><th style="width:64px">Tipo</th><th style="width:62px">Contrib.</th><th style="width:62px">Legitim.</th><th style="width:62px">Voluntad</th><th style="width:62px">Influencia</th><th style="width:70px">Necesidad involucr.</th><th style="width:76px">Ponder.<br><span style="font-weight:400">producto</span></th><th style="text-align:left">Justificación · expectativas preliminares</th></tr></thead><tbody>`;
+    PI.forEach((p,i)=>{h+=`<tr><td><b style="color:var(--ink)">${i+1}. ${p.nom}</b>${p.sig?'<br><span style="font-size:10px;color:var(--n5t);font-weight:700;letter-spacing:.06em">SIGNIFICATIVA</span>':''}</td><td>${pillHtml(p)}</td>
+      ${[p.c,p.l,p.v,p.i,p.n].map(v=>`<td><span class="sc s${v}">${v}</span></td>`).join('')}<td class="prod">${p.pond}</td>
+      <td class="just">${p.just}<br><span style="color:var(--ink2)">Expectativas: ${p.exp.join(' · ')}</span></td></tr>`;});
+    const avg=k=>(PI.reduce((a,p)=>a+p[k],0)/PI.length).toFixed(1);
+    h+=`<tr style="background:#142c23"><td colspan="2" style="text-align:left;color:var(--oro2);font-weight:700">Ponderación por grado (promedio)</td><td>${avg('c')}</td><td>${avg('l')}</td><td>${avg('v')}</td><td>${avg('i')}</td><td>${avg('n')}</td><td></td><td class="just">Escala: 1 un NO es altamente probable / muy baja · 3 indeciso / indiferente · 5 un SÍ es altamente probable / muy elevada.</td></tr></tbody>`;
+    document.getElementById('pt').innerHTML=h;
+  }
+
+  function onActivate(i){const sl=slides[i];
+    if(sl.querySelector('#map')){renderMap();mapDefault();}
+    if(sl.querySelector('#quad')){renderQuad();quadDefault();}
+    if(sl.querySelector('#plan')){renderPlan();}}
+  show(0,false);
+})();
+</script>
+</body>
+</html>
